@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-geist-sans: "Space Grotesk", system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-ink-950;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(92, 124, 250, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(132, 94, 247, 0.08) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-ink-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-500;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-ink-900/80 backdrop-blur-xl border border-ink-700/50 rounded-xl shadow-2xl;
+  }
+
+  .search-input {
+    @apply w-full px-5 py-4 bg-ink-800/60 border border-ink-600/40 rounded-xl
+           text-ink-100 placeholder-ink-400 text-lg
+           focus:outline-none focus:border-blueprint-500 focus:ring-2 focus:ring-blueprint-500/20
+           transition-all duration-200;
+  }
+
+  .result-card {
+    @apply glass-panel p-4 cursor-pointer
+           hover:border-blueprint-500/50 hover:bg-ink-800/80
+           transition-all duration-200;
+  }
+
+  .result-card.selected {
+    @apply border-blueprint-500 bg-blueprint-900/20 ring-2 ring-blueprint-500/30;
+  }
+
+  .checkbox-custom {
+    @apply w-5 h-5 rounded border-2 border-ink-500 bg-ink-800
+           flex items-center justify-center cursor-pointer
+           transition-all duration-150;
+  }
+
+  .checkbox-custom.checked {
+    @apply bg-blueprint-600 border-blueprint-500;
+  }
+
+  .checkbox-custom.checked.variant-a {
+    @apply bg-accent-coral border-accent-coral;
+  }
+
+  .checkbox-custom.checked.variant-b {
+    @apply bg-accent-teal border-accent-teal;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-blueprint-600 to-blueprint-700
+           text-white font-semibold rounded-lg
+           hover:from-blueprint-500 hover:to-blueprint-600
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition-all duration-200 shadow-lg shadow-blueprint-900/50;
+  }
+
+  .badge {
+    @apply px-2 py-0.5 text-xs font-medium rounded-full;
+  }
+
+  .badge-a {
+    @apply bg-accent-coral/20 text-accent-coral;
+  }
+
+  .badge-b {
+    @apply bg-accent-teal/20 text-accent-teal;
+  }
+
+  .page-selector {
+    @apply px-3 py-1.5 bg-ink-800 border border-ink-600 rounded-lg
+           text-sm text-ink-200 cursor-pointer
+           hover:border-ink-500 focus:border-blueprint-500 focus:outline-none
+           transition-all duration-150;
+  }
+}
+
+@layer utilities {
+  .animate-stagger-1 {
+    animation-delay: 50ms;
+  }
+  .animate-stagger-2 {
+    animation-delay: 100ms;
+  }
+  .animate-stagger-3 {
+    animation-delay: 150ms;
+  }
+}

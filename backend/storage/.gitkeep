@@ -1,0 +1,4 @@
+# This directory stores PDFs and rendered page images
+# Subdirectories:
+#   - details/   : Original PDF files
+#   - renders/   : Rendered PNG images (organized by detail_id)
