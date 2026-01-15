@@ -1,0 +1,75 @@
+You are analyzing an annotated overlay image comparing two architectural drawings. The image shows:
+- RED linework = Drawing A (the original/reference drawing)
+- CYAN linework = Drawing B (the revised/comparison drawing)  
+- Where lines overlap perfectly, they appear darker (both drawings match)
+- Yellow highlighted areas indicate detected differences between the drawings
+- Red bounding boxes labeled R1, R2, etc. mark specific difference regions
+- The region IDs correspond to the list below
+
+Detected difference regions:
+- Region 1: located at bbox (529, 132, 238x70), area=7871 pixels
+- Region 2: located at bbox (1646, 235, 83x97), area=2956 pixels
+- Region 3: located at bbox (649, 72, 50x20), area=824 pixels
+- Region 4: located at bbox (1500, 689, 29x28), area=705 pixels
+- Region 5: located at bbox (600, 72, 41x21), area=543 pixels
+- Region 6: located at bbox (1191, 505, 26x82), area=493 pixels
+- Region 7: located at bbox (1313, 386, 36x27), area=470 pixels
+- Region 8: located at bbox (1009, 497, 38x38), area=464 pixels
+- Region 9: located at bbox (1715, 651, 20x28), area=401 pixels
+- Region 10: located at bbox (1593, 254, 28x22), area=397 pixels
+- Region 11: located at bbox (759, 724, 23x28), area=374 pixels
+- Region 12: located at bbox (1214, 599, 20x57), area=370 pixels
+- Region 13: located at bbox (806, 479, 21x28), area=336 pixels
+- Region 14: located at bbox (864, 442, 22x22), area=334 pixels
+- Region 15: located at bbox (647, 111, 31x13), area=326 pixels
+- Region 16: located at bbox (1391, 484, 28x17), area=305 pixels
+- Region 17: located at bbox (735, 95, 36x12), area=286 pixels
+- Region 18: located at bbox (686, 111, 32x14), area=280 pixels
+- Region 19: located at bbox (530, 94, 29x13), area=274 pixels
+- Region 20: located at bbox (1243, 380, 22x17), area=257 pixels
+- Region 21: located at bbox (647, 702, 22x20), area=251 pixels
+- Region 22: located at bbox (972, 761, 44x9), area=249 pixels
+- Region 23: located at bbox (759, 512, 21x22), area=245 pixels
+- Region 24: located at bbox (1145, 736, 22x16), area=245 pixels
+- Region 25: located at bbox (1210, 352, 26x16), area=244 pixels
+- Region 26: located at bbox (1423, 599, 20x16), area=224 pixels
+- Region 27: located at bbox (907, 749, 23x22), area=220 pixels
+- Region 28: located at bbox (907, 698, 15x25), area=202 pixels
+- Region 29: located at bbox (1612, 291, 23x15), area=201 pixels
+- Region 30: located at bbox (647, 389, 27x10), area=196 pixels
+- Region 31: located at bbox (867, 161, 13x23), area=195 pixels
+- Region 32: located at bbox (647, 556, 28x10), area=193 pixels
+- Region 33: located at bbox (1170, 714, 13x22), area=193 pixels
+- Region 34: located at bbox (778, 146, 13x22), area=188 pixels
+- Region 35: located at bbox (1035, 426, 13x22), area=184 pixels
+- Region 36: located at bbox (619, 111, 17x12), area=178 pixels
+- Region 37: located at bbox (696, 534, 24x11), area=165 pixels
+- Region 38: located at bbox (991, 478, 11x23), area=162 pixels
+- Region 39: located at bbox (1146, 167, 12x16), area=143 pixels
+- Region 40: located at bbox (935, 128, 16x22), area=136 pixels
+- Region 41: located at bbox (894, 410, 13x22), area=136 pixels
+- Region 42: located at bbox (1407, 266, 21x8), area=131 pixels
+- Region 43: located at bbox (664, 266, 22x8), area=129 pixels
+- Region 44: located at bbox (1228, 265, 20x9), area=120 pixels
+- Region 45: located at bbox (1085, 169, 14x14), area=118 pixels
+- Region 46: located at bbox (1186, 155, 11x12), area=111 pixels
+- Region 47: located at bbox (692, 286, 10x17), area=110 pixels
+- Region 48: located at bbox (1551, 651, 12x15), area=101 pixels
+- Region 49: located at bbox (1010, 449, 13x14), area=100 pixels
+
+Please provide a concise summary of the differences (2-4 sentences). For each significant region:
+1. Reference the region label (e.g., "Region 1", "Region 2")
+2. Describe what appears to have changed:
+   - RED only = content removed in revision (present in A, missing in B)
+   - CYAN only = content added in revision (missing in A, present in B)
+   - Slight offset of both colors = content moved or adjusted
+3. Note the general location in the drawing
+
+Important guidelines:
+- Be concise and technical
+- State uncertainty when the change is unclear (e.g., "appears to be", "may indicate")
+- Focus on architectural significance (walls, fixtures, dimensions, annotations)
+- If differences seem minor (small areas or line weight variations), mention this
+- Do not speculate beyond what's visible in the image
+
+Begin your response directly with the summary, no introductory phrases.

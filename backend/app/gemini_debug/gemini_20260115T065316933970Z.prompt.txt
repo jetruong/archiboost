@@ -1,0 +1,55 @@
+You are analyzing an annotated overlay image comparing two architectural drawings. The image shows:
+- RED linework = Drawing A (the original/reference drawing)
+- CYAN linework = Drawing B (the revised/comparison drawing)  
+- Where lines overlap perfectly, they appear darker (both drawings match)
+- Yellow highlighted areas indicate detected differences between the drawings
+- Red bounding boxes labeled R1, R2, etc. mark specific difference regions
+- The region IDs correspond to the list below
+
+Detected difference regions:
+- Region 1: located at bbox (1649, 245, 65x70), area=1725 pixels
+- Region 2: located at bbox (649, 72, 50x20), area=824 pixels
+- Region 3: located at bbox (649, 133, 56x18), area=783 pixels
+- Region 4: located at bbox (1312, 381, 37x32), area=601 pixels
+- Region 5: located at bbox (644, 171, 40x20), area=566 pixels
+- Region 6: located at bbox (600, 72, 41x21), area=543 pixels
+- Region 7: located at bbox (1501, 688, 25x24), area=495 pixels
+- Region 8: located at bbox (589, 135, 35x18), area=451 pixels
+- Region 9: located at bbox (1707, 650, 28x22), area=356 pixels
+- Region 10: located at bbox (1594, 254, 27x20), area=347 pixels
+- Region 11: located at bbox (609, 171, 21x24), area=345 pixels
+- Region 12: located at bbox (1612, 286, 27x20), area=342 pixels
+- Region 13: located at bbox (647, 111, 31x14), area=315 pixels
+- Region 14: located at bbox (528, 94, 31x13), area=292 pixels
+- Region 15: located at bbox (735, 95, 36x12), area=286 pixels
+- Region 16: located at bbox (686, 111, 32x14), area=284 pixels
+- Region 17: located at bbox (808, 477, 20x21), area=210 pixels
+- Region 18: located at bbox (670, 612, 19x14), area=192 pixels
+- Region 19: located at bbox (619, 111, 17x12), area=175 pixels
+- Region 20: located at bbox (570, 184, 30x12), area=174 pixels
+- Region 21: located at bbox (1432, 650, 12x16), area=162 pixels
+- Region 22: located at bbox (1185, 155, 12x12), area=126 pixels
+- Region 23: located at bbox (649, 706, 19x16), area=126 pixels
+- Region 24: located at bbox (1391, 483, 18x11), area=123 pixels
+- Region 25: located at bbox (765, 728, 14x15), area=120 pixels
+- Region 26: located at bbox (709, 178, 18x9), area=118 pixels
+- Region 27: located at bbox (868, 439, 15x15), area=118 pixels
+- Region 28: located at bbox (1550, 652, 12x16), area=118 pixels
+- Region 29: located at bbox (578, 170, 18x11), area=112 pixels
+
+Please provide a concise summary of the differences (2-4 sentences). For each significant region:
+1. Reference the region label (e.g., "Region 1", "Region 2")
+2. Describe what appears to have changed:
+   - RED only = content removed in revision (present in A, missing in B)
+   - CYAN only = content added in revision (missing in A, present in B)
+   - Slight offset of both colors = content moved or adjusted
+3. Note the general location in the drawing
+
+Important guidelines:
+- Be concise and technical
+- State uncertainty when the change is unclear (e.g., "appears to be", "may indicate")
+- Focus on architectural significance (walls, fixtures, dimensions, annotations)
+- If differences seem minor (small areas or line weight variations), mention this
+- Do not speculate beyond what's visible in the image
+
+Begin your response directly with the summary, no introductory phrases.

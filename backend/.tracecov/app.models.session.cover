@@ -1,0 +1,167 @@
+    1: """
+       Session and internal data models.
+       """
+       
+    1: from datetime import datetime
+    1: from enum import Enum
+    1: from pathlib import Path
+    1: from typing import Optional, List
+    1: from pydantic import BaseModel, Field
+    1: import json
+       
+       
+    2: class SessionStatus(str, Enum):
+    1:     """Session processing status."""
+    1:     UPLOADED = "uploaded"
+    1:     RASTERIZING = "rasterizing"
+    1:     PREVIEW_READY = "preview_ready"
+    1:     ALIGNING = "aligning"
+    1:     ALIGNED = "aligned"
+    1:     RENDERING = "rendering"
+    1:     COMPLETE = "complete"
+    1:     ERROR = "error"
+       
+       
+    2: class FileType(str, Enum):
+    1:     """Type of uploaded file."""
+    1:     PDF = "pdf"
+    1:     PNG = "png"
+       
+       
+    2: class FileInfo(BaseModel):
+    1:     """Information about an uploaded file."""
+    1:     id: str
+    1:     original_filename: str
+    1:     size_bytes: int
+    1:     storage_path: str
+    1:     uploaded_at: datetime
+    1:     file_type: FileType = FileType.PDF  # Default to PDF for backward compatibility
+       
+       
+    2: class CropMetadata(BaseModel):
+    1:     """Metadata about the cropping operation."""
+    1:     original_width: int
+    1:     original_height: int
+    1:     content_bbox: dict = Field(description="Bounding box of detected content: {x, y, width, height}")
+    1:     final_crop_bbox: dict = Field(description="Final crop box with padding: {x, y, width, height}")
+    1:     cropped_width: int
+    1:     cropped_height: int
+    1:     threshold_used: int
+    1:     padding_applied: int
+    1:     whitespace_ratio: float = Field(description="Proportion of original that was whitespace")
+       
+       
+    2: class PageMetadata(BaseModel):
+    1:     """Metadata about PDF page and rasterization."""
+    1:     page_number: int = 0
+    1:     pdf_width_pt: float
+    1:     pdf_height_pt: float
+    1:     dpi: int
+    1:     raster_width_px: int
+    1:     raster_height_px: int
+    1:     render_time_ms: int
+       
+       
+    2: class PreviewInfo(BaseModel):
+    1:     """Information about a generated preview."""
+    1:     image_id: str
+    1:     storage_path: str
+    1:     width_px: int
+    1:     height_px: int
+    1:     dpi: int
+    1:     page_metadata: Optional[PageMetadata] = None  # Only present for PDF files
+    1:     crop_metadata: CropMetadata
+    1:     generated_at: datetime
+       
+       
+    2: class AnchorPoint(BaseModel):
+    1:     """A 2D anchor point."""
+    1:     x: float
+    1:     y: float
+       
+       
+    2: class TransformParams(BaseModel):
+    1:     """Parameters of a similarity transform."""
+    1:     scale: float
+    1:     rotation_deg: float
+    1:     rotation_rad: float
+    1:     tx: float
+    1:     ty: float
+       
+       
+    2: class AlignmentInfo(BaseModel):
+    1:     """Information about computed alignment."""
+    1:     transform_type: str = "similarity"
+    1:     matrix_2x3: List[List[float]] = Field(description="2x3 affine matrix [[a,b,tx],[c,d,ty]]")
+    1:     params: TransformParams
+    1:     confidence: float
+    1:     residual_error: float
+           
+           # Input metadata
+    1:     coordinate_space: str = "CROPPED_PREVIEW_PIXELS"
+    1:     points_a: List[AnchorPoint]
+    1:     points_b: List[AnchorPoint]
+           
+           # Reference dimensions
+    1:     reference_width: int = Field(description="Width of image A (reference)")
+    1:     reference_height: int = Field(description="Height of image A (reference)")
+    1:     target_width: int = Field(description="Width of image B (to be warped)")
+    1:     target_height: int = Field(description="Height of image B (to be warped)")
+           
+    1:     computed_at: datetime
+       
+       
+    2: class OverlayRenderSettings(BaseModel):
+    1:     """Settings used to render overlay."""
+    1:     color_a: str = "red"
+    1:     color_b: str = "cyan"
+    1:     alpha_a: float = 0.7
+    1:     alpha_b: float = 0.7
+    1:     line_threshold: int = 240
+    1:     background: str = "white"
+       
+       
+    2: class OverlayInfo(BaseModel):
+    1:     """Information about a generated overlay."""
+    1:     image_id: str
+    1:     storage_path: str
+    1:     width_px: int
+    1:     height_px: int
+    1:     render_settings: OverlayRenderSettings
+    1:     generated_at: datetime
+    1:     processing_time_ms: int
+       
+       
+    2: class Session(BaseModel):
+    1:     """Session state model - persisted as JSON."""
+    1:     session_id: str
+    1:     status: SessionStatus
+    1:     created_at: datetime
+    1:     expires_at: datetime
+           
+    1:     file_a: Optional[FileInfo] = None
+    1:     file_b: Optional[FileInfo] = None
+           
+    1:     preview_a: Optional[PreviewInfo] = None
+    1:     preview_b: Optional[PreviewInfo] = None
+           
+           # Alignment data (v0.4.0)
+    1:     alignment: Optional[AlignmentInfo] = None
+           
+           # Overlay data (v0.4.0)
+    1:     overlay: Optional[OverlayInfo] = None
+           
+    1:     error_message: Optional[str] = None
+           
+    1:     def save(self, path: Path) -> None:
+               """Save session to JSON file."""
+>>>>>>         path.parent.mkdir(parents=True, exist_ok=True)
+>>>>>>         with open(path, "w") as f:
+>>>>>>             json.dump(self.model_dump(mode="json"), f, indent=2, default=str)
+           
+    2:     @classmethod
+    2:     def load(cls, path: Path) -> "Session":
+               """Load session from JSON file."""
+>>>>>>         with open(path, "r") as f:
+>>>>>>             data = json.load(f)
+>>>>>>         return cls.model_validate(data)

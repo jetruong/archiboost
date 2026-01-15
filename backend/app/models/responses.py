@@ -12,7 +12,6 @@ from app.models.session import (
     PageMetadata,
     TransformParams,
     AnchorPoint,
-    OverlayRenderSettings,
 )
 
 
@@ -197,29 +196,6 @@ class AlignResponse(BaseModel):
         default=None,
         description="Debug metadata from auto alignment pipeline (only present when auto=true)"
     )
-
-
-# ============================================================
-# Overlay Request/Response Models
-# ============================================================
-
-class OverlayDimensions(BaseModel):
-    """Dimensions of overlay image."""
-    width: int
-    height: int
-
-
-class OverlayResponse(BaseModel):
-    """Response from GET /api/v1/sessions/{session_id}/overlay."""
-    session_id: str
-    overlay_image_id: str
-    overlay_url: str
-    transform: TransformResponse
-    rendering: OverlayRenderSettings
-    dimensions: OverlayDimensions
-    status: SessionStatus
-    processing_time_ms: int
-    generated_at: datetime
 
 
 # ============================================================

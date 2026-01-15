@@ -1,0 +1,228 @@
+    1: """
+       Image cropping service for whitespace removal.
+       """
+       
+    1: import logging
+    1: from dataclasses import dataclass
+    1: from typing import Tuple
+       
+    1: import cv2
+    1: import numpy as np
+       
+    1: from app.config import settings
+    1: from app.models.session import CropMetadata
+       
+    1: logger = logging.getLogger(__name__)
+       
+       
+    3: @dataclass
+    2: class BoundingBox:
+    1:     """Axis-aligned bounding box."""
+    1:     x: int
+    1:     y: int
+    1:     width: int
+    1:     height: int
+           
+    1:     def to_dict(self) -> dict:
+    7:         return {"x": self.x, "y": self.y, "width": self.width, "height": self.height}
+           
+    2:     @classmethod
+    2:     def from_xyxy(cls, x1: int, y1: int, x2: int, y2: int) -> "BoundingBox":
+               """Create from top-left and bottom-right corners."""
+    7:         return cls(x=x1, y=y1, width=x2 - x1, height=y2 - y1)
+       
+       
+    3: @dataclass
+    2: class CropResult:
+    1:     """Result of cropping operation."""
+    1:     image: np.ndarray
+    1:     metadata: CropMetadata
+       
+       
+    2: class CropService:
+    1:     """Service for detecting and cropping whitespace from images."""
+           
+    4:     def __init__(
+               self,
+    2:         threshold: int = None,
+    2:         padding: int = None,
+    2:         min_content_area: int = None,
+           ):
+   14:         self.threshold = threshold or settings.crop_threshold
+   14:         self.padding = padding or settings.crop_padding
+   14:         self.min_content_area = min_content_area or settings.min_content_area
+           
+    4:     def detect_content_bbox(
+               self,
+    1:         image: np.ndarray,
+    2:         threshold: int = None,
+    1:     ) -> BoundingBox:
+               """
+               Detect the bounding box of non-white content in an image.
+               
+               Algorithm:
+               1. Convert to grayscale
+               2. Apply binary threshold (pixels < threshold are "content")
+               3. Find the bounding rectangle of all content pixels
+               
+               Args:
+                   image: RGB or BGR image as numpy array
+                   threshold: Grayscale threshold (0-255), pixels below this are "content"
+               
+               Returns:
+                   BoundingBox of detected content
+               
+               Raises:
+                   ValueError: If no content is detected
+               """
+   10:         threshold = threshold or self.threshold
+               
+               # Convert to grayscale
+   10:         if len(image.shape) == 3:
+    9:             gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+               else:
+    1:             gray = image
+               
+               # Apply threshold: content pixels are those BELOW threshold (darker than white)
+               # We invert so content becomes white (255) and background becomes black (0)
+   10:         _, binary = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY_INV)
+               
+               # Find all non-zero (content) pixel coordinates
+   10:         coords = cv2.findNonZero(binary)
+               
+   10:         if coords is None or len(coords) < self.min_content_area:
+    4:             raise ValueError(
+    4:                 f"No significant content detected (threshold={threshold}, "
+    2:                 f"min_area={self.min_content_area})"
+                   )
+               
+               # Get bounding rectangle
+    8:         x, y, w, h = cv2.boundingRect(coords)
+               
+    8:         return BoundingBox(x=x, y=y, width=w, height=h)
+           
+    6:     def apply_padding(
+               self,
+    1:         bbox: BoundingBox,
+    1:         image_width: int,
+    1:         image_height: int,
+    2:         padding: int = None,
+    1:     ) -> BoundingBox:
+               """
+               Apply padding to a bounding box, clamping to image boundaries.
+               
+               Args:
+                   bbox: Original bounding box
+                   image_width: Width of the source image
+                   image_height: Height of the source image
+                   padding: Pixels of padding to add on all sides
+               
+               Returns:
+                   Padded bounding box clamped to image boundaries
+               """
+    6:         padding = padding if padding is not None else self.padding
+               
+    6:         x1 = max(0, bbox.x - padding)
+    6:         y1 = max(0, bbox.y - padding)
+    6:         x2 = min(image_width, bbox.x + bbox.width + padding)
+    6:         y2 = min(image_height, bbox.y + bbox.height + padding)
+               
+    6:         return BoundingBox.from_xyxy(x1, y1, x2, y2)
+           
+    5:     def crop_whitespace(
+               self,
+    1:         image: np.ndarray,
+    2:         threshold: int = None,
+    2:         padding: int = None,
+    1:     ) -> CropResult:
+               """
+               Detect and crop whitespace from an image.
+               
+               Args:
+                   image: RGB image as numpy array
+                   threshold: Grayscale threshold for content detection
+                   padding: Pixels of padding around content
+               
+               Returns:
+                   CropResult with cropped image and metadata
+               """
+    3:         threshold = threshold if threshold is not None else self.threshold
+    3:         padding = padding if padding is not None else self.padding
+               
+    3:         original_height, original_width = image.shape[:2]
+               
+    6:         logger.info(
+    6:             f"Cropping whitespace from {original_width}x{original_height} image "
+    3:             f"(threshold={threshold}, padding={padding})"
+               )
+               
+               # Detect content bounding box
+    3:         content_bbox = self.detect_content_bbox(image, threshold)
+               
+               # Apply padding
+    6:         final_bbox = self.apply_padding(
+    3:             content_bbox, original_width, original_height, padding
+               )
+               
+               # Crop the image
+    9:         cropped = image[
+    6:             final_bbox.y : final_bbox.y + final_bbox.height,
+    3:             final_bbox.x : final_bbox.x + final_bbox.width,
+    3:         ].copy()
+               
+               # Calculate whitespace ratio
+    3:         original_area = original_width * original_height
+    3:         content_area = content_bbox.width * content_bbox.height
+    3:         whitespace_ratio = 1.0 - (content_area / original_area)
+               
+    6:         metadata = CropMetadata(
+    3:             original_width=original_width,
+    3:             original_height=original_height,
+    3:             content_bbox=content_bbox.to_dict(),
+    3:             final_crop_bbox=final_bbox.to_dict(),
+    3:             cropped_width=final_bbox.width,
+    3:             cropped_height=final_bbox.height,
+    3:             threshold_used=threshold,
+    3:             padding_applied=padding,
+    3:             whitespace_ratio=round(whitespace_ratio, 4),
+               )
+               
+    6:         logger.info(
+    6:             f"Cropped to {final_bbox.width}x{final_bbox.height} "
+    3:             f"(removed {whitespace_ratio:.1%} whitespace)"
+               )
+               
+    3:         return CropResult(image=cropped, metadata=metadata)
+           
+    4:     def compute_bbox_for_thresholds(
+               self,
+    1:         image: np.ndarray,
+    2:         thresholds: list[int] = None,
+    1:     ) -> list[Tuple[int, BoundingBox]]:
+               """
+               Compute content bounding boxes for multiple threshold values.
+               Useful for debugging or finding optimal threshold.
+               
+               Args:
+                   image: RGB image as numpy array
+                   thresholds: List of threshold values to test
+               
+               Returns:
+                   List of (threshold, bbox) tuples for successful detections
+               """
+>>>>>>         if thresholds is None:
+>>>>>>             thresholds = [230, 240, 250, 252, 254]
+               
+>>>>>>         results = []
+>>>>>>         for thresh in thresholds:
+>>>>>>             try:
+>>>>>>                 bbox = self.detect_content_bbox(image, thresh)
+>>>>>>                 results.append((thresh, bbox))
+>>>>>>             except ValueError:
+>>>>>>                 continue
+               
+>>>>>>         return results
+       
+       
+       # Global service instance
+    1: crop_service = CropService()

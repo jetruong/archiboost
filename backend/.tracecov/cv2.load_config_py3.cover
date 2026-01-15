@@ -1,0 +1,9 @@
+       # flake8: noqa
+    1: import os
+    1: import sys
+       
+    1: if sys.version_info[:2] >= (3, 0):
+    1:     def exec_file_wrapper(fpath, g_vars, l_vars):
+    4:         with open(fpath) as f:
+    2:             code = compile(f.read(), os.path.basename(fpath), 'exec')
+    2:             exec(code, g_vars, l_vars)

@@ -1,0 +1,176 @@
+    1: """
+       Storage service for managing sessions and files on the local filesystem.
+       """
+       
+    1: import logging
+    1: import uuid
+    1: from datetime import datetime, timedelta, timezone
+    1: from pathlib import Path
+    1: from typing import Optional
+       
+    1: from app.config import settings
+    1: from app.models.session import Session, SessionStatus, FileInfo, FileType
+       
+    1: logger = logging.getLogger(__name__)
+       
+       
+    2: class StorageService:
+    1:     """Manages session storage and file operations."""
+           
+    1:     def __init__(self, base_dir: Optional[Path] = None):
+    1:         self.base_dir = base_dir or settings.sessions_dir
+    1:         self.base_dir.mkdir(parents=True, exist_ok=True)
+           
+    1:     def create_session(self) -> Session:
+               """Create a new session with unique ID."""
+>>>>>>         session_id = str(uuid.uuid4())
+>>>>>>         now = datetime.now(timezone.utc)
+>>>>>>         expires_at = now + timedelta(hours=settings.session_ttl_hours)
+               
+>>>>>>         session = Session(
+>>>>>>             session_id=session_id,
+>>>>>>             status=SessionStatus.UPLOADED,
+>>>>>>             created_at=now,
+>>>>>>             expires_at=expires_at,
+               )
+               
+               # Create session directories
+>>>>>>         session_dir = self.get_session_dir(session_id)
+>>>>>>         (session_dir / "inputs").mkdir(parents=True, exist_ok=True)
+>>>>>>         (session_dir / "previews").mkdir(parents=True, exist_ok=True)
+>>>>>>         (session_dir / "metadata").mkdir(parents=True, exist_ok=True)
+               
+>>>>>>         logger.info(f"Created session {session_id}")
+>>>>>>         return session
+           
+    1:     def get_session_dir(self, session_id: str) -> Path:
+               """Get the directory path for a session."""
+    2:         return self.base_dir / session_id
+           
+    1:     def get_session_path(self, session_id: str) -> Path:
+               """Get the path to the session.json file."""
+    2:         return self.get_session_dir(session_id) / "session.json"
+           
+    1:     def save_session(self, session: Session) -> None:
+               """Persist session to disk."""
+>>>>>>         path = self.get_session_path(session.session_id)
+>>>>>>         session.save(path)
+>>>>>>         logger.debug(f"Saved session {session.session_id}")
+           
+    1:     def load_session(self, session_id: str) -> Optional[Session]:
+               """Load session from disk. Returns None if not found."""
+    2:         path = self.get_session_path(session_id)
+    2:         if not path.exists():
+    2:             return None
+>>>>>>         try:
+>>>>>>             session = Session.load(path)
+                   # Check expiration
+>>>>>>             if datetime.now(timezone.utc) > session.expires_at:
+>>>>>>                 logger.warning(f"Session {session_id} has expired")
+>>>>>>                 return None
+>>>>>>             return session
+>>>>>>         except Exception as e:
+>>>>>>             logger.error(f"Failed to load session {session_id}: {e}")
+>>>>>>             return None
+           
+    1:     def session_exists(self, session_id: str) -> bool:
+               """Check if a session exists and is not expired."""
+>>>>>>         return self.load_session(session_id) is not None
+           
+    7:     async def save_uploaded_file(
+               self,
+    1:         session_id: str,
+    1:         file_content: bytes,
+    1:         original_filename: str,
+    1:         which: str,  # "A" or "B"
+    2:         file_type: FileType = FileType.PDF,
+    1:     ) -> FileInfo:
+               """Save an uploaded file and return its metadata."""
+>>>>>>         file_id = str(uuid.uuid4())
+               
+               # Determine storage path based on file type
+>>>>>>         session_dir = self.get_session_dir(session_id)
+>>>>>>         extension = "png" if file_type == FileType.PNG else "pdf"
+>>>>>>         filename = f"file_{which.lower()}.{extension}"
+>>>>>>         storage_path = session_dir / "inputs" / filename
+               
+               # Write file
+>>>>>>         storage_path.write_bytes(file_content)
+               
+>>>>>>         file_info = FileInfo(
+>>>>>>             id=file_id,
+>>>>>>             original_filename=original_filename,
+>>>>>>             size_bytes=len(file_content),
+>>>>>>             storage_path=str(storage_path),
+>>>>>>             uploaded_at=datetime.now(timezone.utc),
+>>>>>>             file_type=file_type,
+               )
+               
+>>>>>>         logger.info(f"Saved file {original_filename} ({len(file_content)} bytes) as {storage_path}")
+>>>>>>         return file_info
+           
+    1:     def get_input_path(self, session_id: str, which: str, file_type: FileType = FileType.PDF) -> Path:
+               """Get the path to an input file (PDF or PNG)."""
+>>>>>>         extension = "png" if file_type == FileType.PNG else "pdf"
+>>>>>>         return self.get_session_dir(session_id) / "inputs" / f"file_{which.lower()}.{extension}"
+           
+    1:     def get_preview_path(self, session_id: str, which: str) -> Path:
+               """Get the path to a preview image."""
+>>>>>>         return self.get_session_dir(session_id) / "previews" / f"preview_{which.lower()}.png"
+           
+    1:     def get_image_by_id(self, image_id: str) -> Optional[Path]:
+               """
+               Find an image by its ID across all sessions.
+               
+               Supported formats:
+               - preview_{a|b}_{session_id_prefix}
+               - overlay_{session_id_prefix}
+               - diff_{session_id_prefix}
+               """
+    1:         parts = image_id.split("_")
+    1:         if len(parts) < 2:
+    1:             return None
+               
+>>>>>>         image_type = parts[0]  # 'preview', 'overlay', or 'diff'
+               
+>>>>>>         if image_type == "preview":
+                   # Format: preview_a_550e8400 or preview_b_550e8400
+>>>>>>             if len(parts) < 3:
+>>>>>>                 return None
+>>>>>>             which = parts[1]  # 'a' or 'b'
+>>>>>>             session_prefix = parts[2]
+                   
+>>>>>>             for session_dir in self.base_dir.iterdir():
+>>>>>>                 if session_dir.is_dir() and session_dir.name.startswith(session_prefix):
+>>>>>>                     preview_path = session_dir / "previews" / f"preview_{which}.png"
+>>>>>>                     if preview_path.exists():
+>>>>>>                         return preview_path
+               
+>>>>>>         elif image_type in ("overlay", "diff"):
+                   # Format: overlay_550e8400 or diff_550e8400
+>>>>>>             session_prefix = parts[1]
+                   
+>>>>>>             for session_dir in self.base_dir.iterdir():
+>>>>>>                 if session_dir.is_dir() and session_dir.name.startswith(session_prefix):
+>>>>>>                     image_path = session_dir / "overlays" / f"{image_type}_{session_prefix}.png"
+>>>>>>                     if image_path.exists():
+>>>>>>                         return image_path
+               
+>>>>>>         return None
+           
+    1:     def get_overlay_path(self, session_id: str) -> Path:
+               """Get the path to the overlay image."""
+>>>>>>         return self.get_session_dir(session_id) / "overlays" / f"overlay_{session_id[:8]}.png"
+           
+    1:     def generate_image_id(self, session_id: str, which: str) -> str:
+               """Generate a unique image ID for preview."""
+>>>>>>         prefix = session_id[:8]
+>>>>>>         return f"preview_{which.lower()}_{prefix}"
+           
+    1:     def generate_overlay_id(self, session_id: str) -> str:
+               """Generate a unique image ID for overlay."""
+>>>>>>         return f"overlay_{session_id[:8]}"
+       
+       
+       # Global service instance
+    1: storage_service = StorageService()

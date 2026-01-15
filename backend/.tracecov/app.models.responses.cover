@@ -1,0 +1,238 @@
+    1: """
+       API response models.
+       """
+       
+    1: from datetime import datetime
+    1: from typing import Optional, Any, List
+    1: from pydantic import BaseModel, Field
+       
+    1: from app.models.session import (
+           SessionStatus, 
+           CropMetadata, 
+           PageMetadata,
+           TransformParams,
+           AnchorPoint,
+           OverlayRenderSettings,
+       )
+       
+       
+    2: class FileUploadInfo(BaseModel):
+    1:     """File info returned in upload response."""
+    1:     id: str
+    1:     filename: str
+    1:     size_bytes: int
+    1:     uploaded_at: datetime
+       
+       
+    2: class UploadResponse(BaseModel):
+    1:     """Response from POST /api/v1/upload."""
+    1:     session_id: str
+    1:     file_a: FileUploadInfo
+    1:     file_b: FileUploadInfo
+    1:     status: SessionStatus
+    1:     created_at: datetime
+    1:     expires_at: datetime
+       
+       
+    2: class PreviewResponse(BaseModel):
+    1:     """Response from GET /api/v1/sessions/{session_id}/preview."""
+    1:     session_id: str
+    1:     which: str = Field(description="Which file: 'A' or 'B'")
+    1:     image_id: str
+    1:     image_url: str
+    1:     width_px: int
+    1:     height_px: int
+    1:     dpi: int
+    2:     page_metadata: Optional[PageMetadata] = Field(
+    1:         default=None, 
+    1:         description="PDF page metadata. Only present for PDF files, null for PNG inputs."
+           )
+    1:     crop_metadata: CropMetadata
+    1:     processing_time_ms: int
+       
+       
+    2: class PreviewSummary(BaseModel):
+    1:     """Summary of a preview for session response."""
+    1:     image_id: str
+    1:     image_url: str
+    1:     width_px: int
+    1:     height_px: int
+    1:     generated: bool = True
+       
+       
+    2: class AlignmentSummary(BaseModel):
+    1:     """Summary of alignment for session response."""
+    1:     transform_type: str
+    1:     scale: float
+    1:     rotation_deg: float
+    1:     confidence: float
+    1:     computed: bool = True
+       
+       
+    2: class OverlaySummary(BaseModel):
+    1:     """Summary of overlay for session response."""
+    1:     image_id: str
+    1:     image_url: str
+    1:     width_px: int
+    1:     height_px: int
+    1:     generated: bool = True
+       
+       
+    2: class SessionResponse(BaseModel):
+    1:     """Response from GET /api/v1/sessions/{session_id}."""
+    1:     session_id: str
+    1:     status: SessionStatus
+    1:     created_at: datetime
+    1:     expires_at: datetime
+    1:     ttl_seconds: int
+           
+    1:     file_a: Optional[FileUploadInfo] = None
+    1:     file_b: Optional[FileUploadInfo] = None
+           
+    1:     preview_a: Optional[PreviewSummary] = None
+    1:     preview_b: Optional[PreviewSummary] = None
+           
+    1:     alignment: Optional[AlignmentSummary] = None
+    1:     overlay: Optional[OverlaySummary] = None
+           
+    1:     error_message: Optional[str] = None
+       
+       
+       # ============================================================
+       # Alignment Request/Response Models
+       # ============================================================
+       
+    2: class AlignRequest(BaseModel):
+    1:     """
+           Request body for POST /api/v1/sessions/{session_id}/align.
+           
+           Two modes:
+           1. AUTO mode: Set auto=true - automatically detects and matches features
+           2. MANUAL mode: Provide points_a and points_b manually
+           
+           For manual mode, place anchor points on structural drawing features
+           (wall corners, line intersections, etc.) NOT on text/labels.
+           """
+    2:     auto: bool = Field(
+    1:         default=False,
+    1:         description="If true, automatically detect anchor points using feature matching. "
+                           "If false, points_a and points_b must be provided."
+           )
+    2:     points_a: Optional[List[AnchorPoint]] = Field(
+    1:         default=None,
+    1:         min_length=2,
+    1:         max_length=2,
+    1:         description="Two anchor points in image A (cropped preview coordinates). "
+                           "Required if auto=false. Place on walls/lines, NOT labels."
+           )
+    2:     points_b: Optional[List[AnchorPoint]] = Field(
+    1:         default=None,
+    1:         min_length=2,
+    1:         max_length=2,
+    1:         description="Two corresponding anchor points in image B (cropped preview coordinates). "
+                           "Required if auto=false. Must correspond to the same features as points_a."
+           )
+    2:     coordinate_space: str = Field(
+    1:         default="CROPPED_PREVIEW_PIXELS",
+    1:         description="Coordinate space for points. Must be CROPPED_PREVIEW_PIXELS."
+           )
+    2:     rotation_constraint: str = Field(
+    1:         default="SNAP_90",
+    1:         description="Rotation constraint: SNAP_90 (try 0°, 90°, 180°, 270° - default), "
+                           "NONE (no rotation), FREE (any angle). "
+                           "SNAP_90 automatically handles rotated drawings."
+           )
+       
+       
+    2: class TransformResponse(BaseModel):
+    1:     """Transform details in alignment response."""
+    1:     transform_type: str = "similarity"
+    1:     matrix_2x3: List[List[float]] = Field(description="2x3 affine matrix [[a,b,tx],[c,d,ty]]")
+    1:     params: TransformParams
+       
+       
+    2: class AlignMetadata(BaseModel):
+    1:     """Metadata about images used in alignment."""
+    1:     dpi: int
+    1:     image_a_size: dict = Field(description="{width, height} of cropped preview A")
+    1:     image_b_size: dict = Field(description="{width, height} of cropped preview B")
+    1:     crop_a: dict = Field(description="Crop metadata for A")
+    1:     crop_b: dict = Field(description="Crop metadata for B")
+       
+       
+    2: class AutoAlignDebugResponse(BaseModel):
+    1:     """Debug metadata from auto alignment v2 pipeline."""
+    1:     rotation_candidates_evaluated: List[float] = Field(description="Rotation angles evaluated (degrees)")
+    1:     rotation_candidate_scores: dict = Field(description="Score for each rotation candidate")
+    1:     rotation_candidate_used: float = Field(description="Rotation angle selected (degrees)")
+    1:     fine_rotation_applied: bool = Field(default=False, description="Whether fine rotation refinement was used")
+    1:     phase_response: float = Field(description="Phase correlation response (0-1)")
+    1:     phase_translation: List[float] = Field(description="Translation from phase correlation [tx, ty]")
+    1:     overlap_ratio: float = Field(description="Bounding box overlap ratio (0-1)")
+    1:     bbox_a: Optional[List[int]] = Field(description="Bounding box of A [x, y, w, h]")
+    1:     bbox_b_warped: Optional[List[int]] = Field(description="Bounding box of warped B [x, y, w, h]")
+    1:     refinement_method_used: str = Field(description="Feature refinement method (NONE, AKAZE, SIFT, ORB)")
+    1:     refinement_matches: int = Field(description="Number of feature matches found")
+    1:     refinement_inliers: int = Field(description="Number of RANSAC inliers")
+    1:     scale_source: str = Field(description="How scale was determined (default, feature)")
+    1:     final_confidence: float = Field(description="Final confidence score")
+    1:     confidence_breakdown: dict = Field(description="Breakdown of confidence components")
+    1:     rejection_reason: Optional[str] = Field(default=None, description="Reason for rejection if failed")
+    1:     guardrail_violations: List[str] = Field(default_factory=list, description="List of guardrail violations")
+       
+       
+    2: class AlignResponse(BaseModel):
+    1:     """Response from POST /api/v1/sessions/{session_id}/align."""
+    1:     session_id: str
+    1:     transform: TransformResponse
+    1:     confidence: float = Field(description="Alignment confidence score (0.0-1.0)")
+    1:     residual_error: float = Field(description="RMS error in pixels after mapping")
+    1:     coordinate_space: str = "CROPPED_PREVIEW_PIXELS"
+    1:     points_a: List[AnchorPoint]
+    1:     points_b: List[AnchorPoint]
+    1:     metadata: AlignMetadata
+    1:     status: SessionStatus
+    1:     computed_at: datetime
+    2:     auto_debug: Optional[AutoAlignDebugResponse] = Field(
+    1:         default=None,
+    1:         description="Debug metadata from auto alignment pipeline (only present when auto=true)"
+           )
+       
+       
+       # ============================================================
+       # Overlay Request/Response Models
+       # ============================================================
+       
+    2: class OverlayDimensions(BaseModel):
+    1:     """Dimensions of overlay image."""
+    1:     width: int
+    1:     height: int
+       
+       
+    2: class OverlayResponse(BaseModel):
+    1:     """Response from GET /api/v1/sessions/{session_id}/overlay."""
+    1:     session_id: str
+    1:     overlay_image_id: str
+    1:     overlay_url: str
+    1:     transform: TransformResponse
+    1:     rendering: OverlayRenderSettings
+    1:     dimensions: OverlayDimensions
+    1:     status: SessionStatus
+    1:     processing_time_ms: int
+    1:     generated_at: datetime
+       
+       
+       # ============================================================
+       # Error Models
+       # ============================================================
+       
+    2: class ErrorDetail(BaseModel):
+    1:     """Detailed error information."""
+    1:     code: str
+    1:     message: str
+    1:     details: Optional[dict[str, Any]] = None
+       
+       
+    2: class ErrorResponse(BaseModel):
+    1:     """Standard error response."""
+    1:     error: ErrorDetail

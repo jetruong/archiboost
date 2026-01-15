@@ -1,0 +1,27 @@
+You are analyzing an annotated overlay image comparing two architectural drawings. The image shows:
+- RED linework = Drawing A (the original/reference drawing)
+- CYAN linework = Drawing B (the revised/comparison drawing)  
+- Where lines overlap perfectly, they appear darker (both drawings match)
+- Yellow highlighted areas indicate detected differences between the drawings
+- Red bounding boxes labeled R1, R2, etc. mark specific difference regions
+- The region IDs correspond to the list below
+
+Detected difference regions:
+No significant regions detected.
+
+Please provide a concise summary of the differences (2-4 sentences). For each significant region:
+1. Reference the region label (e.g., "Region 1", "Region 2")
+2. Describe what appears to have changed:
+   - RED only = content removed in revision (present in A, missing in B)
+   - CYAN only = content added in revision (missing in A, present in B)
+   - Slight offset of both colors = content moved or adjusted
+3. Note the general location in the drawing
+
+Important guidelines:
+- Be concise and technical
+- State uncertainty when the change is unclear (e.g., "appears to be", "may indicate")
+- Focus on architectural significance (walls, fixtures, dimensions, annotations)
+- If differences seem minor (small areas or line weight variations), mention this
+- Do not speculate beyond what's visible in the image
+
+Begin your response directly with the summary, no introductory phrases.

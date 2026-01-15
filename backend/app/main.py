@@ -15,7 +15,6 @@ from app.routes import (
     upload_router, 
     sessions_router, 
     images_router, 
-    overlay_router,
     compose_router,
     library_router,
     differences_router,
@@ -87,7 +86,6 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(upload_router, prefix=settings.api_v1_prefix)
 app.include_router(sessions_router, prefix=settings.api_v1_prefix)
 app.include_router(images_router, prefix=settings.api_v1_prefix)
-app.include_router(overlay_router, prefix=settings.api_v1_prefix)
 app.include_router(compose_router, prefix=settings.api_v1_prefix)
 app.include_router(library_router, prefix=settings.api_v1_prefix)
 app.include_router(differences_router, prefix=settings.api_v1_prefix)

@@ -23,7 +23,6 @@ from app.models.responses import (
     ErrorResponse,
     AlignRequest,
     AlignResponse,
-    OverlayResponse,
 )
 
 __all__ = [
@@ -45,5 +44,4 @@ __all__ = [
     "ErrorResponse",
     "AlignRequest",
     "AlignResponse",
-    "OverlayResponse",
 ]

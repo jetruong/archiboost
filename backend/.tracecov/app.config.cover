@@ -1,0 +1,161 @@
+    1: """
+       Application configuration settings.
+       """
+       
+    1: from pathlib import Path
+    1: from typing import List
+    1: from pydantic_settings import BaseSettings
+       
+       
+    2: class Settings(BaseSettings):
+    1:     """Application settings with environment variable support."""
+           
+           # API Settings
+    1:     api_v1_prefix: str = "/api/v1"
+    1:     debug: bool = False
+           
+           # File Storage
+    1:     data_dir: Path = Path("./data")
+           
+           # Storage Root for library files
+    1:     storage_root: Path = Path("./storage")
+           
+           # Upload Limits
+    1:     max_file_size_mb: int = 25
+    1:     allowed_content_types: list[str] = ["application/pdf", "image/png"]
+           
+           # Rasterization Settings
+    1:     default_dpi: int = 250
+    1:     max_dpi: int = 600
+    1:     min_dpi: int = 72
+           
+           # Crop Settings
+    1:     crop_threshold: int = 250  # Grayscale threshold for whitespace detection
+    1:     crop_padding: int = 20     # Pixels of padding around content
+    1:     min_content_area: int = 100  # Minimum pixel area to be considered content
+           
+           # Session Settings
+    1:     session_ttl_hours: int = 1
+           
+           # ============================================================
+           # AUTO ALIGNMENT V2 SETTINGS
+           # ============================================================
+           
+           # --- Linework Preprocessing ---
+           # Canny edge detection parameters
+    1:     canny_threshold1: int = 50      # Lower hysteresis threshold
+    1:     canny_threshold2: int = 150     # Upper hysteresis threshold
+    1:     canny_aperture: int = 3         # Sobel aperture size (3, 5, or 7)
+           
+           # Morphological operations for linework enhancement
+    1:     linework_dilate_kernel: int = 2  # Kernel size for dilating edges
+    1:     linework_dilate_iterations: int = 1
+           
+           # Text suppression (remove small connected components)
+    1:     text_suppress_enabled: bool = True
+    1:     text_suppress_min_area: int = 100        # Min area in pixels to keep
+    1:     text_suppress_min_width: int = 5         # Min width in pixels to keep
+    1:     text_suppress_min_height: int = 5        # Min height in pixels to keep
+    1:     text_suppress_max_aspect_ratio: float = 10.0  # Max aspect ratio (width/height)
+           
+           # Contrast normalization
+    1:     normalize_contrast: bool = True
+    1:     clahe_clip_limit: float = 2.0    # CLAHE clip limit
+    1:     clahe_tile_size: int = 8         # CLAHE tile grid size
+           
+           # --- Rotation Strategy ---
+           # Coarse rotation candidates (evaluated first)
+    1:     rotation_candidates_deg: List[float] = [0.0, 90.0, 180.0, 270.0]
+           
+           # Fine rotation refinement (around best coarse candidate)
+    1:     fine_rotation_enabled: bool = True         # Enable fine rotation search
+    1:     fine_rotation_range_deg: float = 15.0      # Search ±15° around best coarse rotation
+    1:     fine_rotation_step_deg: float = 3.0        # Step size for fine search
+    1:     fine_rotation_threshold: float = 0.5       # Only refine if coarse confidence < this
+           
+           # --- Phase Correlation (Primary Translation Estimation) ---
+    1:     phase_correlation_window: str = "hann"  # Window function: "hann", "hamming", "none"
+    1:     phase_correlation_min_response: float = 0.15  # Minimum response to accept
+           
+           # --- Scale Bounds ---
+           # Reject alignments with scale outside these bounds
+           # Note: Wide bounds allow comparing drawings at different DPIs/resolutions
+    1:     scale_min: float = 0.1           # Minimum allowed scale (10x smaller)
+    1:     scale_max: float = 10.0          # Maximum allowed scale (10x larger)
+    1:     scale_warn_min: float = 0.5      # Warn if scale below this
+    1:     scale_warn_max: float = 2.0      # Warn if scale above this
+           
+           # --- Translation Bounds ---
+           # Maximum translation as fraction of image dimension
+           # Note: Wide bounds allow drawings positioned anywhere in the frame
+    1:     translation_max_fraction: float = 2.0  # Max translation = 200% of image size
+           
+           # --- Overlap Requirements ---
+           # Minimum overlap between warped B and A bounding boxes
+    1:     min_overlap_ratio: float = 0.1   # At least 10% overlap required
+           
+           # --- Feature-Based Refinement (Secondary, Conditional) ---
+           # Feature detector priority (try in order)
+    1:     feature_detectors: List[str] = ["AKAZE", "SIFT", "ORB"]
+           
+           # When to use feature refinement
+    1:     feature_refinement_threshold: float = 0.5  # Use if phase confidence < this
+           
+           # Feature matching parameters
+    1:     feature_max_features: int = 2000       # Max features to detect
+    1:     feature_match_ratio: float = 0.75      # Lowe's ratio test threshold
+    1:     feature_min_matches: int = 10          # Minimum matches required
+           
+           # RANSAC parameters
+    1:     ransac_reproj_threshold: float = 5.0   # Reprojection error threshold (pixels)
+    1:     ransac_max_iters: int = 2000           # Maximum RANSAC iterations
+    1:     ransac_confidence: float = 0.99        # RANSAC confidence level
+           
+           # --- Confidence Thresholds ---
+           # Final confidence scoring weights
+    1:     confidence_weight_phase: float = 0.4      # Weight for phase correlation response
+    1:     confidence_weight_overlap: float = 0.3    # Weight for bbox overlap ratio
+    1:     confidence_weight_inlier: float = 0.3     # Weight for inlier ratio (if refinement ran)
+           
+           # Minimum confidence to accept alignment
+    1:     auto_align_min_confidence: float = 0.35   # Below this -> AUTO_ALIGNMENT_FAILED
+           
+           # Confidence threshold for "high confidence" (skip refinement)
+    1:     auto_align_high_confidence: float = 0.7   # Above this -> skip feature refinement
+           
+           # ============================================================
+           # DIFFERENCE DETECTION SETTINGS
+           # ============================================================
+           
+           # Position tolerance in pixels - allows small translation/alignment errors
+           # Both linework masks are dilated by this amount before comparison
+           # Set to 0 for pixel-perfect comparison (very strict)
+           # Set to 5-10 for tolerance of small alignment errors (recommended)
+    1:     diff_position_tolerance: int = 5
+           
+           # Minimum region area in pixels to consider a difference
+           # Regions smaller than this are filtered out as noise
+    1:     diff_min_region_area: int = 100
+           
+           # Morphological kernel size for cleanup operations
+    1:     diff_morph_kernel_size: int = 5
+           
+           # Number of morphological iterations for gap closing
+    1:     diff_morph_iterations: int = 2
+           
+    2:     @property
+    2:     def max_file_size_bytes(self) -> int:
+>>>>>>         return self.max_file_size_mb * 1024 * 1024
+           
+    2:     @property
+    2:     def sessions_dir(self) -> Path:
+    1:         return self.data_dir / "sessions"
+           
+    2:     class Config:
+    1:         env_prefix = "ARCHIBOOST_"
+    1:         env_file = ".env"
+    1:         extra = "ignore"  # Allow extra env vars like GOOGLE_API_KEY
+       
+       
+       # Global settings instance
+    1: settings = Settings()
