@@ -52,8 +52,19 @@ class TransformInput(BaseModel):
 
 
 class DifferencesRequest(BaseModel):
-    """Request body for differences endpoint."""
-    transform: Optional[TransformInput] = None  # Optional manual transform from frontend
+    """Request body for differences endpoint.
+    
+    Supports two modes:
+    1. Legacy: Single `transform` field (layer B's absolute transform, A assumed at identity)
+    2. New: Both `transform_a` and `transform_b` fields for proper relative transform calculation
+    
+    When both transform_a and transform_b are provided, the backend computes the relative
+    transform (B in A's coordinate space) to properly handle cases where the user has
+    manually adjusted either or both layers.
+    """
+    transform: Optional[TransformInput] = None  # Legacy: B's transform only (A at identity)
+    transform_a: Optional[TransformInput] = None  # Layer A's current transform
+    transform_b: Optional[TransformInput] = None  # Layer B's current transform
 
 
 class DifferencesResponse(BaseModel):
@@ -141,6 +152,63 @@ def rebuild_similarity_transform(matrix_2x3: List[List[float]]) -> SimilarityTra
     scale = math.sqrt(a**2 + c**2)
     
     # Recover rotation: θ = atan2(c, a) = atan2(s*sin(θ), s*cos(θ))
+    rotation_rad = math.atan2(c, a)
+    
+    return SimilarityTransform(
+        scale=scale,
+        rotation_rad=rotation_rad,
+        tx=tx,
+        ty=ty,
+    )
+
+
+def compute_relative_transform(
+    transform_a: TransformInput,
+    transform_b: TransformInput,
+) -> SimilarityTransform:
+    """
+    Compute the relative transform of B with respect to A.
+    
+    This computes T_rel = inverse(T_A) * T_B, which gives B's position
+    in A's coordinate space. This properly handles cases where the user
+    has manually adjusted either or both layers.
+    
+    Args:
+        transform_a: Layer A's current transform (scale, rotation, translation)
+        transform_b: Layer B's current transform (scale, rotation, translation)
+    
+    Returns:
+        SimilarityTransform representing B relative to A
+    """
+    # Build 3x3 homogeneous matrices for both transforms
+    def build_matrix(t: TransformInput) -> np.ndarray:
+        """Build 3x3 homogeneous similarity transform matrix."""
+        cos_t = math.cos(math.radians(t.rotation_deg))
+        sin_t = math.sin(math.radians(t.rotation_deg))
+        s = t.scale
+        return np.array([
+            [s * cos_t, -s * sin_t, t.translate_x],
+            [s * sin_t,  s * cos_t, t.translate_y],
+            [0,          0,         1]
+        ], dtype=np.float64)
+    
+    M_A = build_matrix(transform_a)
+    M_B = build_matrix(transform_b)
+    
+    # Compute relative transform: T_rel = inverse(T_A) * T_B
+    M_A_inv = np.linalg.inv(M_A)
+    M_rel = M_A_inv @ M_B
+    
+    # Extract parameters from the resulting matrix
+    # M_rel = [[s*cos(θ), -s*sin(θ), tx],
+    #          [s*sin(θ),  s*cos(θ), ty],
+    #          [0,         0,        1 ]]
+    a = M_rel[0, 0]  # s * cos(θ)
+    c = M_rel[1, 0]  # s * sin(θ)
+    tx = M_rel[0, 2]
+    ty = M_rel[1, 2]
+    
+    scale = math.sqrt(a**2 + c**2)
     rotation_rad = math.atan2(c, a)
     
     return SimilarityTransform(
@@ -275,11 +343,24 @@ async def generate_differences(
     linework_a = extract_linework(image_a)
     linework_b = extract_linework(image_b)
     
-    # Determine transform source (priority: request > session > identity)
+    # Determine transform source (priority: dual transforms > legacy transform > session > identity)
     transform: SimilarityTransform
     
-    if request and request.transform:
-        # Use transform from request (manual adjustment from frontend)
+    if request and request.transform_a and request.transform_b:
+        # New mode: Both transforms provided - compute relative transform
+        # This properly handles cases where user adjusted either or both layers
+        transform = compute_relative_transform(request.transform_a, request.transform_b)
+        alignment_source = "manual_relative"
+        logger.info(
+            f"Using relative transform (B relative to A): "
+            f"A=({request.transform_a.scale:.4f}, {request.transform_a.rotation_deg:.2f}°, "
+            f"({request.transform_a.translate_x:.1f}, {request.transform_a.translate_y:.1f})), "
+            f"B=({request.transform_b.scale:.4f}, {request.transform_b.rotation_deg:.2f}°, "
+            f"({request.transform_b.translate_x:.1f}, {request.transform_b.translate_y:.1f}))"
+        )
+    
+    elif request and request.transform:
+        # Legacy mode: Only B's transform provided (A assumed at identity)
         t = request.transform
         transform = SimilarityTransform(
             scale=t.scale,
@@ -288,7 +369,7 @@ async def generate_differences(
             ty=t.translate_y,
         )
         alignment_source = "manual"
-        logger.info(f"Using manual transform from request")
+        logger.info(f"Using legacy manual transform from request (A at identity)")
         
     elif session.alignment:
         # Use stored alignment from compose/align endpoint

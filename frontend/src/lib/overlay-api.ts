@@ -336,23 +336,38 @@ export interface DifferencesTransform {
 }
 
 export interface DifferencesRequest {
-  transform?: DifferencesTransform;
+  transform?: DifferencesTransform;  // Legacy: B's transform only (A at identity)
+  transform_a?: DifferencesTransform;  // Layer A's current transform
+  transform_b?: DifferencesTransform;  // Layer B's current transform
 }
 
 /**
  * Generate AI-powered differences summary for a session.
  * 
  * @param sessionId - The session ID
- * @param transform - Optional manual transform from frontend (use when user has adjusted the overlay)
+ * @param transformA - Layer A's current transform (optional, for proper relative calculation)
+ * @param transformB - Layer B's current transform (optional, for proper relative calculation)
+ * 
+ * When both transformA and transformB are provided, the backend computes the relative
+ * transform (B in A's coordinate space) to properly handle cases where the user has
+ * manually adjusted either or both layers.
  */
 export async function generateDifferences(
   sessionId: string,
-  transform?: DifferencesTransform
+  transformA?: DifferencesTransform,
+  transformB?: DifferencesTransform
 ): Promise<DifferencesResponse> {
   const body: DifferencesRequest = {};
-  if (transform) {
-    body.transform = transform;
+  
+  if (transformA && transformB) {
+    // New mode: Send both transforms for proper relative calculation
+    body.transform_a = transformA;
+    body.transform_b = transformB;
+  } else if (transformB) {
+    // Legacy fallback: Only B provided (A at identity)
+    body.transform = transformB;
   }
+  // If neither provided, backend will use session alignment or identity
 
   const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/differences`, {
     method: "POST",

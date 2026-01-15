@@ -1,0 +1,157 @@
+You are analyzing an annotated overlay image comparing two architectural drawings. The image shows:
+- RED linework = Drawing A (the original/reference drawing)
+- CYAN linework = Drawing B (the revised/comparison drawing)  
+- Where lines overlap perfectly, they appear darker (both drawings match)
+- Yellow highlighted areas indicate detected differences between the drawings
+- Red bounding boxes labeled R1, R2, etc. mark specific difference regions
+- The region IDs correspond to the list below
+
+Detected difference regions:
+- Region 1: located at bbox (1132, 377, 63x210), area=5564 pixels
+- Region 2: located at bbox (448, 268, 60x333), area=3841 pixels
+- Region 3: located at bbox (513, 317, 47x269), area=3225 pixels
+- Region 4: located at bbox (1081, 423, 38x163), area=3087 pixels
+- Region 5: located at bbox (448, 692, 243x60), area=2749 pixels
+- Region 6: located at bbox (957, 330, 91x117), area=1947 pixels
+- Region 7: located at bbox (509, 83, 62x71), area=1903 pixels
+- Region 8: located at bbox (630, 452, 54x56), area=1406 pixels
+- Region 9: located at bbox (655, 286, 34x56), area=1397 pixels
+- Region 10: located at bbox (629, 508, 60x57), area=1378 pixels
+- Region 11: located at bbox (768, 287, 13x123), area=1334 pixels
+- Region 12: located at bbox (507, 199, 23x106), area=1199 pixels
+- Region 13: located at bbox (578, 445, 30x62), area=1183 pixels
+- Region 14: located at bbox (1397, 385, 30x52), area=1148 pixels
+- Region 15: located at bbox (1196, 887, 59x24), area=1136 pixels
+- Region 16: located at bbox (705, 286, 10x113), area=1116 pixels
+- Region 17: located at bbox (803, 406, 73x48), area=1054 pixels
+- Region 18: located at bbox (655, 606, 34x71), area=1044 pixels
+- Region 19: located at bbox (583, 266, 49x47), area=963 pixels
+- Region 20: located at bbox (374, 98, 61x25), area=958 pixels
+- Region 21: located at bbox (1564, 849, 60x25), area=957 pixels
+- Region 22: located at bbox (1217, 313, 35x55), area=929 pixels
+- Region 23: located at bbox (655, 349, 34x50), area=890 pixels
+- Region 24: located at bbox (443, 87, 26x82), area=879 pixels
+- Region 25: located at bbox (1196, 925, 56x25), area=839 pixels
+- Region 26: located at bbox (649, 72, 50x20), area=824 pixels
+- Region 27: located at bbox (973, 700, 50x20), area=824 pixels
+- Region 28: located at bbox (973, 739, 50x20), area=824 pixels
+- Region 29: located at bbox (300, 868, 60x24), area=796 pixels
+- Region 30: located at bbox (584, 626, 24x54), area=792 pixels
+- Region 31: located at bbox (287, 700, 60x24), area=792 pixels
+- Region 32: located at bbox (1397, 443, 30x41), area=765 pixels
+- Region 33: located at bbox (1250, 118, 55x21), area=763 pixels
+- Region 34: located at bbox (584, 133, 56x18), area=744 pixels
+- Region 35: located at bbox (1094, 168, 12x86), area=690 pixels
+- Region 36: located at bbox (727, 709, 53x21), area=687 pixels
+- Region 37: located at bbox (1527, 925, 40x25), area=681 pixels
+- Region 38: located at bbox (1326, 447, 25x47), area=638 pixels
+- Region 39: located at bbox (536, 549, 62x28), area=609 pixels
+- Region 40: located at bbox (997, 132, 37x20), area=608 pixels
+- Region 41: located at bbox (844, 740, 51x24), area=595 pixels
+- Region 42: located at bbox (1219, 848, 49x26), area=578 pixels
+- Region 43: located at bbox (1467, 688, 29x24), area=567 pixels
+- Region 44: located at bbox (579, 171, 40x20), area=566 pixels
+- Region 45: located at bbox (389, 173, 46x25), area=559 pixels
+- Region 46: located at bbox (585, 385, 52x39), area=550 pixels
+- Region 47: located at bbox (1159, 599, 29x28), area=549 pixels
+- Region 48: located at bbox (817, 287, 58x10), area=546 pixels
+- Region 49: located at bbox (600, 72, 41x21), area=543 pixels
+- Region 50: located at bbox (743, 477, 30x26), area=512 pixels
+- Region 51: located at bbox (1683, 650, 30x24), area=501 pixels
+- Region 52: located at bbox (1496, 239, 39x25), area=494 pixels
+- Region 53: located at bbox (1307, 359, 40x38), area=488 pixels
+- Region 54: located at bbox (641, 111, 41x20), area=484 pixels
+- Region 55: located at bbox (720, 567, 61x19), area=484 pixels
+- Region 56: located at bbox (584, 354, 28x28), area=450 pixels
+- Region 57: located at bbox (1430, 239, 37x25), area=447 pixels
+- Region 58: located at bbox (1115, 467, 14x43), area=399 pixels
+- Region 59: located at bbox (803, 477, 26x24), area=393 pixels
+- Region 60: located at bbox (1468, 239, 33x17), area=385 pixels
+- Region 61: located at bbox (1407, 239, 30x17), area=372 pixels
+- Region 62: located at bbox (892, 127, 27x24), area=361 pixels
+- Region 63: located at bbox (1146, 286, 21x36), area=359 pixels
+- Region 64: located at bbox (0, 211, 16x24), area=356 pixels
+- Region 65: located at bbox (1051, 287, 36x10), area=352 pixels
+- Region 66: located at bbox (544, 171, 21x24), area=345 pixels
+- Region 67: located at bbox (946, 483, 32x20), area=332 pixels
+- Region 68: located at bbox (1158, 155, 39x12), area=322 pixels
+- Region 69: located at bbox (1238, 688, 26x25), area=318 pixels
+- Region 70: located at bbox (1126, 723, 39x12), area=318 pixels
+- Region 71: located at bbox (418, 211, 26x25), area=317 pixels
+- Region 72: located at bbox (0, 98, 17x24), area=315 pixels
+- Region 73: located at bbox (0, 173, 17x24), area=311 pixels
+- Region 74: located at bbox (1420, 557, 11x38), area=308 pixels
+- Region 75: located at bbox (992, 505, 38x12), area=303 pixels
+- Region 76: located at bbox (694, 148, 26x26), area=298 pixels
+- Region 77: located at bbox (1069, 380, 34x16), area=294 pixels
+- Region 78: located at bbox (1082, 302, 21x23), area=292 pixels
+- Region 79: located at bbox (809, 149, 24x23), area=287 pixels
+- Region 80: located at bbox (1584, 286, 23x24), area=287 pixels
+- Region 81: located at bbox (735, 95, 36x12), area=286 pixels
+- Region 82: located at bbox (1326, 418, 24x17), area=278 pixels
+- Region 83: located at bbox (0, 135, 16x24), area=272 pixels
+- Region 84: located at bbox (676, 412, 15x29), area=272 pixels
+- Region 85: located at bbox (258, 248, 19x26), area=271 pixels
+- Region 86: located at bbox (215, 738, 33x25), area=271 pixels
+- Region 87: located at bbox (584, 520, 16x28), area=269 pixels
+- Region 88: located at bbox (204, 906, 33x25), area=266 pixels
+- Region 89: located at bbox (1608, 887, 19x24), area=261 pixels
+- Region 90: located at bbox (1240, 286, 12x29), area=252 pixels
+- Region 91: located at bbox (1420, 286, 11x30), area=250 pixels
+- Region 92: located at bbox (1359, 849, 21x18), area=249 pixels
+- Region 93: located at bbox (655, 685, 20x25), area=247 pixels
+- Region 94: located at bbox (0, 738, 17x20), area=242 pixels
+- Region 95: located at bbox (684, 111, 17x20), area=235 pixels
+- Region 96: located at bbox (693, 480, 17x18), area=235 pixels
+- Region 97: located at bbox (813, 746, 30x18), area=232 pixels
+- Region 98: located at bbox (9, 868, 14x24), area=230 pixels
+- Region 99: located at bbox (585, 610, 23x17), area=223 pixels
+- Region 100: located at bbox (892, 406, 15x24), area=222 pixels
+- Region 101: located at bbox (472, 211, 17x17), area=218 pixels
+- Region 102: located at bbox (312, 135, 18x20), area=215 pixels
+- Region 103: located at bbox (932, 127, 13x24), area=212 pixels
+- Region 104: located at bbox (147, 702, 31x15), area=212 pixels
+- Region 105: located at bbox (1622, 250, 21x20), area=208 pixels
+- Region 106: located at bbox (217, 135, 30x17), area=203 pixels
+- Region 107: located at bbox (810, 700, 32x11), area=197 pixels
+- Region 108: located at bbox (784, 705, 21x12), area=191 pixels
+- Region 109: located at bbox (619, 111, 17x14), area=181 pixels
+- Region 110: located at bbox (1140, 113, 18x16), area=180 pixels
+- Region 111: located at bbox (1370, 925, 22x19), area=171 pixels
+- Region 112: located at bbox (1094, 607, 9x21), area=169 pixels
+- Region 113: located at bbox (1507, 925, 14x23), area=157 pixels
+- Region 114: located at bbox (723, 404, 24x9), area=151 pixels
+- Region 115: located at bbox (0, 249, 17x25), area=146 pixels
+- Region 116: located at bbox (584, 331, 20x10), area=135 pixels
+- Region 117: located at bbox (1081, 352, 22x9), area=130 pixels
+- Region 118: located at bbox (19, 702, 12x17), area=130 pixels
+- Region 119: located at bbox (1163, 226, 15x11), area=129 pixels
+- Region 120: located at bbox (449, 239, 9x16), area=126 pixels
+- Region 121: located at bbox (1265, 357, 17x12), area=126 pixels
+- Region 122: located at bbox (907, 751, 14x13), area=124 pixels
+- Region 123: located at bbox (502, 176, 14x14), area=123 pixels
+- Region 124: located at bbox (644, 178, 18x9), area=118 pixels
+- Region 125: located at bbox (907, 706, 12x13), area=117 pixels
+- Region 126: located at bbox (1125, 114, 14x13), area=116 pixels
+- Region 127: located at bbox (700, 730, 14x13), area=113 pixels
+- Region 128: located at bbox (1094, 128, 12x18), area=112 pixels
+- Region 129: located at bbox (1423, 849, 9x17), area=112 pixels
+- Region 130: located at bbox (1028, 380, 8x15), area=105 pixels
+- Region 131: located at bbox (1277, 695, 13x13), area=104 pixels
+
+Please provide a concise summary of the differences (2-4 sentences). For each significant region:
+1. Reference the region label (e.g., "Region 1", "Region 2")
+2. Describe what appears to have changed:
+   - RED only = content removed in revision (present in A, missing in B)
+   - CYAN only = content added in revision (missing in A, present in B)
+   - Slight offset of both colors = content moved or adjusted
+3. Note the general location in the drawing
+
+Important guidelines:
+- Be concise and technical
+- State uncertainty when the change is unclear (e.g., "appears to be", "may indicate")
+- Focus on architectural significance (walls, fixtures, dimensions, annotations)
+- If differences seem minor (small areas or line weight variations), mention this
+- Do not speculate beyond what's visible in the image
+
+Begin your response directly with the summary, no introductory phrases.

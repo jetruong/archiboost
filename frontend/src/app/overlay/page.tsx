@@ -494,17 +494,35 @@ function OverlayEditor() {
       setDifferencesError(null);
       setDifferencesResult(null);
 
+      // Find the A layer (pair1) to get its current transform
+      const aLayerState = layerStates.find((s) => {
+        const layer = layers.find((l) => l.id === s.id);
+        return layer?.source === "pair1";
+      });
+
       // Find the B layer (pair2) to get its current transform
-      // This is important when the user has manually adjusted the overlay
       const bLayerState = layerStates.find((s) => {
         const layer = layers.find((l) => l.id === s.id);
         return layer?.source === "pair2";
       });
 
-      // Build transform from current B layer state
-      let transform: DifferencesTransform | undefined;
+      // Build transforms from current layer states
+      // We now send BOTH transforms so the backend can compute the proper
+      // relative transform, handling cases where either or both layers are adjusted
+      let transformA: DifferencesTransform | undefined;
+      let transformB: DifferencesTransform | undefined;
+      
+      if (aLayerState) {
+        transformA = {
+          scale: aLayerState.transform.scale_x,
+          rotation_deg: aLayerState.transform.rotation_deg,
+          translate_x: aLayerState.transform.translate_x,
+          translate_y: aLayerState.transform.translate_y,
+        };
+      }
+      
       if (bLayerState) {
-        transform = {
+        transformB = {
           scale: bLayerState.transform.scale_x,
           rotation_deg: bLayerState.transform.rotation_deg,
           translate_x: bLayerState.transform.translate_x,
@@ -512,7 +530,7 @@ function OverlayEditor() {
         };
       }
 
-      const result = await generateDifferences(sessionId, transform);
+      const result = await generateDifferences(sessionId, transformA, transformB);
       setDifferencesResult(result);
       
       // Initialize region visibility state (all visible by default)

@@ -138,11 +138,11 @@ class GeminiSummaryService:
         
         regions_text = "\n".join(region_descriptions) if region_descriptions else "No significant regions detected."
         
-        prompt = f"""You are analyzing an annotated overlay image comparing two architectural drawings. The image shows:
-- RED linework = Drawing A (the original/reference drawing)
-- CYAN linework = Drawing B (the revised/comparison drawing)  
-- Where lines overlap perfectly, they appear darker (both drawings match)
-- Yellow highlighted areas indicate detected differences between the drawings
+        prompt = f"""You are analyzing an annotated overlay image comparing two versions of the SAME architectural drawing. The image shows:
+- RED linework = Drawing A (the original/reference version)
+- CYAN linework = Drawing B (the revised/comparison version)
+- Where linework overlaps perfectly, it appears darker (both versions match)
+- Yellow highlighted areas indicate detected differences between the versions
 - Red bounding boxes labeled R1, R2, etc. mark specific difference regions
 - The region IDs correspond to the list below
 
@@ -151,14 +151,18 @@ Detected difference regions:
 
 Please provide a concise summary of the differences (2-4 sentences). For each significant region:
 1. Reference the region label (e.g., "Region 1", "Region 2")
-2. Describe what appears to have changed:
-   - RED only = content removed in revision (present in A, missing in B)
-   - CYAN only = content added in revision (missing in A, present in B)
-   - Slight offset of both colors = content moved or adjusted
+2. Describe the drawing/content change (do not describe color/pixels moving between colors):
+   - Present only in Drawing A (RED-only) = removed in the revision
+   - Present only in Drawing B (CYAN-only) = added in the revision
+   - Both present but offset = alignment shift or a moved/adjusted element (state uncertainty)
+   - IMPORTANT: Text/dimensions often shift slightly and may appear as RED-only in one spot and CYAN-only in a nearby spot. If you can find the same/similar text or symbol in the other color nearby, describe it as "moved/repositioned" rather than "removed/added".
 3. Note the general location in the drawing
+4. If there is any visible/legible text near the region (notes, callouts, dimensions, revision tags), quote or paraphrase it and use it to explain the change; if the text is not legible, say so.
 
 Important guidelines:
 - Be concise and technical
+- Never say things like "red pixels moved to cyan" or treat CYAN as a "diff layer"—CYAN is the revised linework.
+- Avoid strong add/remove claims for dimension strings/callouts unless you cannot find a corresponding callout of the same content nearby in the other version; when unsure, say it "may have moved" or "may have been updated".
 - State uncertainty when the change is unclear (e.g., "appears to be", "may indicate")
 - Focus on architectural significance (walls, fixtures, dimensions, annotations)
 - If differences seem minor (small areas or line weight variations), mention this
